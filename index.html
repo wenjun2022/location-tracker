@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>位置追踪器</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://webapi.amap.com/maps?v=2.0&key=f0bf8f06107ad2b563b1dcd5428aacbd"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>位置追踪器</h1>
+        
+        <div class="data-display">
+            <div class="data-item">
+                <span class="label">纬度：</span>
+                <span id="latitude">-</span>
+            </div>
+            <div class="data-item">
+                <span class="label">经度：</span>
+                <span id="longitude">-</span>
+            </div>
+            <div class="data-item">
+                <span class="label">速度：</span>
+                <span id="speed">-</span> m/s
+            </div>
+            <div class="data-item">
+                <span class="label">加速度：</span>
+                <span id="acceleration">-</span> m/s²
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="startBtn">开始追踪</button>
+            <button id="stopBtn" disabled>停止追踪</button>
+        </div>
+
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
