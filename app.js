@@ -270,11 +270,8 @@ class LocationTracker {
     }
 
     resetDisplay() {
-        this.speedElem.textContent = '-';
-        this.accelerationElem.textContent = '-';
-        this.distanceElem.textContent = '-';
-        this.durationElem.textContent = '-';
-        this.avgSpeedElem.textContent = '-';
+        // 保留最后的数据显示
+        // 不再清除数据
     }
 }
 
