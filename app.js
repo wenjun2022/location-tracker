@@ -144,18 +144,19 @@ class LocationTracker {
             alert('你太棒了，今天运动目标达成，继续加油哦！');
         }
         
-        // 计算运动时间和平均速度
-        const duration = (timestamp - this.startTimestamp) / 1000 / 60; // 转换为分钟
-        const avgSpeed = this.totalDistance / 1000 / (duration / 60); // 转换为km/h
-        
-        // 更新显示
-        this.durationElem.textContent = duration.toFixed(1);
-        this.avgSpeedElem.textContent = avgSpeed.toFixed(1);
-        
         // 更新最后记录
         this.lastPosition = position;
         this.lastTimestamp = timestamp;
         this.lastSpeed = currentSpeed;
+
+        // 实时计算运动时间和平均速度
+        const currentTime = Date.now();
+        const duration = (currentTime - this.startTimestamp) / 1000 / 60; // 转换为分钟
+        const avgSpeed = this.totalDistance / 1000 / (duration / 60); // 转换为km/h
+        
+        // 实时更新显示
+        this.durationElem.textContent = duration.toFixed(1);
+        this.avgSpeedElem.textContent = avgSpeed.toFixed(1);
     }
 
     // WGS84转GCJ02坐标转换
