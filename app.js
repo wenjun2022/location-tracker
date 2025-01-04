@@ -12,11 +12,11 @@ class LocationTracker {
         this.targetDistance = 2000; // 2公里目标（单位：米）
         this.targetReached = false;
 
-        this.latitudeElem = document.getElementById('latitude');
-        this.longitudeElem = document.getElementById('longitude');
         this.speedElem = document.getElementById('speed');
         this.accelerationElem = document.getElementById('acceleration');
         this.distanceElem = document.getElementById('distance');
+        this.durationElem = document.getElementById('duration');
+        this.avgSpeedElem = document.getElementById('avgSpeed');
         
         this.startBtn = document.getElementById('startBtn');
         this.stopBtn = document.getElementById('stopBtn');
@@ -77,10 +77,6 @@ class LocationTracker {
     updatePosition(position) {
         const { latitude, longitude, speed } = position.coords;
         const timestamp = position.timestamp;
-        
-        // 更新位置显示
-        this.latitudeElem.textContent = latitude.toFixed(6);
-        this.longitudeElem.textContent = longitude.toFixed(6);
         
         // 将WGS84坐标转换为GCJ02坐标
         const gcj02 = this.wgs84ToGcj02(longitude, latitude);
@@ -147,6 +143,14 @@ class LocationTracker {
             this.targetReached = true;
             alert('你太棒了，今天运动目标达成，继续加油哦！');
         }
+        
+        // 计算运动时间和平均速度
+        const duration = (timestamp - this.startTimestamp) / 1000 / 60; // 转换为分钟
+        const avgSpeed = this.totalDistance / 1000 / (duration / 60); // 转换为km/h
+        
+        // 更新显示
+        this.durationElem.textContent = duration.toFixed(1);
+        this.avgSpeedElem.textContent = avgSpeed.toFixed(1);
         
         // 更新最后记录
         this.lastPosition = position;
@@ -217,11 +221,11 @@ class LocationTracker {
     }
 
     resetDisplay() {
-        this.latitudeElem.textContent = '-';
-        this.longitudeElem.textContent = '-';
         this.speedElem.textContent = '-';
         this.accelerationElem.textContent = '-';
         this.distanceElem.textContent = '-';
+        this.durationElem.textContent = '-';
+        this.avgSpeedElem.textContent = '-';
     }
 }
 
