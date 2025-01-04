@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>位置追踪器</title>
+    <title>运动健康</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://webapi.amap.com/maps?v=2.0&key=267314e2d0d65bfcf213f67c387ea43c"></script>
 </head>
 <body>
     <div class="container">
-        <h1>位置追踪器</h1>
+        <h1>运动健康</h1>
         
         <div class="data-display">
             <div class="data-item">
@@ -28,11 +28,15 @@
                 <span class="label">加速度：</span>
                 <span id="acceleration">-</span> m/s²
             </div>
+            <div class="data-item">
+                <span class="label">里程：</span>
+                <span id="distance">-</span> km
+            </div>
         </div>
 
         <div class="controls">
-            <button id="startBtn">开始追踪</button>
-            <button id="stopBtn" disabled>停止追踪</button>
+            <button id="startBtn">开始运动</button>
+            <button id="stopBtn" disabled>结束运动</button>
         </div>
 
         <div class="map-container">
@@ -43,3 +47,4 @@
     <script src="app.js"></script>
 </body>
 </html>
+
