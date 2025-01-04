@@ -11,6 +11,7 @@ class LocationTracker {
         this.totalDistance = 0;
         this.targetDistance = 2000; // 2公里目标（单位：米）
         this.targetReached = false;
+        this.startTimestamp = null; // 初始化运动开始时间
 
         this.speedElem = document.getElementById('speed');
         this.accelerationElem = document.getElementById('acceleration');
@@ -43,6 +44,8 @@ class LocationTracker {
         this.totalDistance = 0;
         this.targetReached = false;
         this.distanceElem.textContent = '0.00';
+        this.startTimestamp = Date.now(); // 记录运动开始时间
+        
         if (this.polyline) {
             this.map.remove(this.polyline);
             this.polyline = null;
