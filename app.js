@@ -9,7 +9,7 @@ class LocationTracker {
         this.polyline = null;
         this.path = [];
         this.totalDistance = 0;
-        this.targetDistance = 3000; // 3公里目标（单位：米）
+        this.targetDistance = 2000; // 3公里目标（单位：米）
         this.targetReached = false;
 
         this.latitudeElem = document.getElementById('latitude');
