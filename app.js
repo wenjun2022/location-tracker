@@ -9,6 +9,8 @@ class LocationTracker {
         this.polyline = null;
         this.path = [];
         this.totalDistance = 0;
+        this.targetDistance = 2000; // 2公里目标（单位：米）
+        this.targetReached = false;
 
         this.latitudeElem = document.getElementById('latitude');
         this.longitudeElem = document.getElementById('longitude');
@@ -39,6 +41,7 @@ class LocationTracker {
         // 重置数据
         this.path = [];
         this.totalDistance = 0;
+        this.targetReached = false;
         this.distanceElem.textContent = '0.00';
         if (this.polyline) {
             this.map.remove(this.polyline);
@@ -68,7 +71,54 @@ class LocationTracker {
         this.startBtn.disabled = false;
         this.stopBtn.disabled = true;
         
+        // 截图保存
+        this.captureAndSave();
         this.resetDisplay();
+    }
+
+    captureAndSave() {
+        // 获取地图容器
+        const mapContainer = document.getElementById('map');
+        // 获取整个页面内容
+        const container = document.querySelector('.container');
+        
+        // 先截图地图
+        html2canvas(mapContainer).then(mapCanvas => {
+            // 再截图整个页面
+            return html2canvas(container).then(pageCanvas => {
+                // 创建新的画布
+                const finalCanvas = document.createElement('canvas');
+                finalCanvas.width = pageCanvas.width;
+                finalCanvas.height = pageCanvas.height + mapCanvas.height;
+                const ctx = finalCanvas.getContext('2d');
+                
+                // 绘制页面内容
+                ctx.drawImage(pageCanvas, 0, 0);
+                // 在页面内容下方绘制地图
+                ctx.drawImage(mapCanvas, 0, pageCanvas.height);
+                
+                return finalCanvas;
+            });
+        }).then(canvas => {
+            // 将canvas转换为图片
+            const imgData = canvas.toDataURL('image/png');
+            
+            // 创建下载链接
+            const link = document.createElement('a');
+            link.download = '运动轨迹截图.png';
+            link.href = imgData;
+            
+            // 触发下载
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // 提示用户
+            alert('截图已保存到您的设备中');
+        }).catch(err => {
+            console.error('截图失败:', err);
+            alert('截图保存失败，请重试');
+        });
     }
 
     updatePosition(position) {
@@ -138,6 +188,12 @@ class LocationTracker {
         this.speedElem.textContent = currentSpeed ? currentSpeed.toFixed(2) : '0.00';
         this.accelerationElem.textContent = acceleration ? acceleration.toFixed(2) : '0.00';
         this.distanceElem.textContent = (this.totalDistance / 1000).toFixed(2); // 转换为公里
+
+        // 检查是否达到运动目标
+        if (!this.targetReached && this.totalDistance >= this.targetDistance) {
+            this.targetReached = true;
+            alert('你太棒了，今天运动目标达成，继续加油哦！');
+        }
         
         // 更新最后记录
         this.lastPosition = position;
@@ -225,4 +281,3 @@ document.addEventListener('DOMContentLoaded', () => {
     
     new LocationTracker();
 });
-
