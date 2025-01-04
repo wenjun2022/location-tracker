@@ -21,9 +21,11 @@ class LocationTracker {
         
         this.startBtn = document.getElementById('startBtn');
         this.stopBtn = document.getElementById('stopBtn');
+        this.refreshBtn = document.getElementById('refreshBtn');
         
         this.startBtn.addEventListener('click', () => this.start());
         this.stopBtn.addEventListener('click', () => this.stop());
+        this.refreshBtn.addEventListener('click', () => this.refreshPosition());
 
         // 初始化地图
         this.initMap();
