@@ -72,6 +72,49 @@ class LocationTracker {
         this.stopBtn.disabled = true;
         
         this.resetDisplay();
+        this.playbackPath();
+    }
+
+    playbackPath() {
+        if (this.path.length < 2) return;
+
+        // 创建回放标记
+        const playbackMarker = new AMap.Marker({
+            position: this.path[0],
+            map: this.map,
+            icon: new AMap.Icon({
+                image: 'https://webapi.amap.com/theme/v1.3/markers/n/mark_b.png',
+                size: new AMap.Size(20, 30),
+                imageOffset: new AMap.Pixel(0, 0)
+            })
+        });
+
+        let index = 0;
+        const interval = setInterval(() => {
+            if (index >= this.path.length - 1) {
+                clearInterval(interval);
+                return;
+            }
+
+            // 移动标记
+            playbackMarker.setPosition(this.path[index]);
+            this.map.setCenter(this.path[index]);
+
+            // 绘制已回放路径
+            const playedPath = new AMap.Polyline({
+                path: this.path.slice(0, index + 1),
+                strokeColor: "#FF0000",
+                strokeOpacity: 1,
+                strokeWeight: 4,
+                strokeStyle: "solid",
+                lineJoin: 'round',
+                lineCap: 'round',
+                zIndex: 100,
+            });
+            this.map.add(playedPath);
+
+            index++;
+        }, 500); // 每500ms移动一次
     }
 
     updatePosition(position) {
