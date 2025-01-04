@@ -9,6 +9,8 @@ class LocationTracker {
         this.polyline = null;
         this.path = [];
         this.totalDistance = 0;
+        this.targetDistance = 3000; // 3公里目标（单位：米）
+        this.targetReached = false;
 
         this.latitudeElem = document.getElementById('latitude');
         this.longitudeElem = document.getElementById('longitude');
@@ -39,6 +41,7 @@ class LocationTracker {
         // 重置数据
         this.path = [];
         this.totalDistance = 0;
+        this.targetReached = false;
         this.distanceElem.textContent = '0.00';
         if (this.polyline) {
             this.map.remove(this.polyline);
@@ -138,6 +141,12 @@ class LocationTracker {
         this.speedElem.textContent = currentSpeed ? currentSpeed.toFixed(2) : '0.00';
         this.accelerationElem.textContent = acceleration ? acceleration.toFixed(2) : '0.00';
         this.distanceElem.textContent = (this.totalDistance / 1000).toFixed(2); // 转换为公里
+
+        // 检查是否达到运动目标
+        if (!this.targetReached && this.totalDistance >= this.targetDistance) {
+            this.targetReached = true;
+            alert('你太棒了，今天运动目标达成，继续加油哦！');
+        }
         
         // 更新最后记录
         this.lastPosition = position;
@@ -225,4 +234,3 @@ document.addEventListener('DOMContentLoaded', () => {
     
     new LocationTracker();
 });
-
