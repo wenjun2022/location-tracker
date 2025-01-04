@@ -9,7 +9,7 @@ class LocationTracker {
         this.polyline = null;
         this.path = [];
         this.totalDistance = 0;
-        this.targetDistance = 2000; // 3公里目标（单位：米）
+        this.targetDistance = 2000; // 2公里目标（单位：米）
         this.targetReached = false;
 
         this.latitudeElem = document.getElementById('latitude');
@@ -71,7 +71,33 @@ class LocationTracker {
         this.startBtn.disabled = false;
         this.stopBtn.disabled = true;
         
+        // 截图保存
+        this.captureAndSave();
         this.resetDisplay();
+    }
+
+    captureAndSave() {
+        const container = document.querySelector('.container');
+        html2canvas(container).then(canvas => {
+            // 将canvas转换为图片
+            const imgData = canvas.toDataURL('image/png');
+            
+            // 创建下载链接
+            const link = document.createElement('a');
+            link.download = '运动轨迹截图.png';
+            link.href = imgData;
+            
+            // 触发下载
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // 提示用户
+            alert('截图已保存到您的设备中');
+        }).catch(err => {
+            console.error('截图失败:', err);
+            alert('截图保存失败，请重试');
+        });
     }
 
     updatePosition(position) {
