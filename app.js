@@ -77,8 +77,29 @@ class LocationTracker {
     }
 
     captureAndSave() {
+        // 获取地图容器
+        const mapContainer = document.getElementById('map');
+        // 获取整个页面内容
         const container = document.querySelector('.container');
-        html2canvas(container).then(canvas => {
+        
+        // 先截图地图
+        html2canvas(mapContainer).then(mapCanvas => {
+            // 再截图整个页面
+            return html2canvas(container).then(pageCanvas => {
+                // 创建新的画布
+                const finalCanvas = document.createElement('canvas');
+                finalCanvas.width = pageCanvas.width;
+                finalCanvas.height = pageCanvas.height + mapCanvas.height;
+                const ctx = finalCanvas.getContext('2d');
+                
+                // 绘制页面内容
+                ctx.drawImage(pageCanvas, 0, 0);
+                // 在页面内容下方绘制地图
+                ctx.drawImage(mapCanvas, 0, pageCanvas.height);
+                
+                return finalCanvas;
+            });
+        }).then(canvas => {
             // 将canvas转换为图片
             const imgData = canvas.toDataURL('image/png');
             
