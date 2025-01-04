@@ -6,11 +6,15 @@ class LocationTracker {
         this.lastSpeed = 0;
         this.map = null;
         this.marker = null;
+        this.polyline = null;
+        this.path = [];
+        this.totalDistance = 0;
 
         this.latitudeElem = document.getElementById('latitude');
         this.longitudeElem = document.getElementById('longitude');
         this.speedElem = document.getElementById('speed');
         this.accelerationElem = document.getElementById('acceleration');
+        this.distanceElem = document.getElementById('distance');
         
         this.startBtn = document.getElementById('startBtn');
         this.stopBtn = document.getElementById('stopBtn');
@@ -31,6 +35,15 @@ class LocationTracker {
 
     start() {
         if (this.watchId !== null) return;
+        
+        // 重置数据
+        this.path = [];
+        this.totalDistance = 0;
+        this.distanceElem.textContent = '0.00';
+        if (this.polyline) {
+            this.map.remove(this.polyline);
+            this.polyline = null;
+        }
         
         this.startBtn.disabled = true;
         this.stopBtn.disabled = false;
@@ -66,30 +79,57 @@ class LocationTracker {
         this.latitudeElem.textContent = latitude.toFixed(6);
         this.longitudeElem.textContent = longitude.toFixed(6);
         
+        // 将WGS84坐标转换为GCJ02坐标
+        const gcj02 = this.wgs84ToGcj02(longitude, latitude);
+        
         // 更新地图位置
-        const lnglat = [longitude, latitude];
         if (!this.marker) {
             this.marker = new AMap.Marker({
-                position: lnglat,
+                position: gcj02,
                 map: this.map
             });
         } else {
-            this.marker.setPosition(lnglat);
+            this.marker.setPosition(gcj02);
         }
-        this.map.setCenter(lnglat);
+        this.map.setCenter(gcj02);
+
+        // 更新轨迹
+        this.path.push(gcj02);
+        if (this.path.length > 1) {
+            if (!this.polyline) {
+                this.polyline = new AMap.Polyline({
+                    path: this.path,
+                    isOutline: true,
+                    outlineColor: '#ffeeff',
+                    borderWeight: 1,
+                    strokeColor: "#3366FF", 
+                    strokeOpacity: 1,
+                    strokeWeight: 6,
+                    strokeStyle: "solid",
+                    lineJoin: 'round',
+                    lineCap: 'round',
+                    zIndex: 50,
+                });
+                this.map.add(this.polyline);
+            } else {
+                this.polyline.setPath(this.path);
+            }
+        }
 
         // 计算速度和加速度
         let currentSpeed = speed;
         let acceleration = 0;
+        let distance = 0;
         
         if (this.lastPosition && this.lastTimestamp) {
             const timeDiff = (timestamp - this.lastTimestamp) / 1000; // 转换为秒
-            const distance = this.calculateDistance(
+            distance = this.calculateDistance(
                 this.lastPosition.coords.latitude,
                 this.lastPosition.coords.longitude,
                 latitude,
                 longitude
             );
+            this.totalDistance += distance;
             
             currentSpeed = distance / timeDiff;
             acceleration = (currentSpeed - this.lastSpeed) / timeDiff;
@@ -97,11 +137,53 @@ class LocationTracker {
         
         this.speedElem.textContent = currentSpeed ? currentSpeed.toFixed(2) : '0.00';
         this.accelerationElem.textContent = acceleration ? acceleration.toFixed(2) : '0.00';
+        this.distanceElem.textContent = (this.totalDistance / 1000).toFixed(2); // 转换为公里
         
         // 更新最后记录
         this.lastPosition = position;
         this.lastTimestamp = timestamp;
         this.lastSpeed = currentSpeed;
+    }
+
+    // WGS84转GCJ02坐标转换
+    wgs84ToGcj02(lng, lat) {
+        const a = 6378245.0;
+        const ee = 0.00669342162296594323;
+        
+        if (this.outOfChina(lng, lat)) {
+            return [lng, lat];
+        }
+        
+        let dlat = this.transformLat(lng - 105.0, lat - 35.0);
+        let dlng = this.transformLng(lng - 105.0, lat - 35.0);
+        const radlat = lat / 180.0 * Math.PI;
+        let magic = Math.sin(radlat);
+        magic = 1 - ee * magic * magic;
+        const sqrtmagic = Math.sqrt(magic);
+        dlat = (dlat * 180.0) / ((a * (1 - ee)) / (magic * sqrtmagic) * Math.PI);
+        dlng = (dlng * 180.0) / (a / sqrtmagic * Math.cos(radlat) * Math.PI);
+        
+        return [lng + dlng, lat + dlat];
+    }
+
+    outOfChina(lng, lat) {
+        return lng < 72.004 || lng > 137.8347 || lat < 0.8293 || lat > 55.8271;
+    }
+
+    transformLat(x, y) {
+        let ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+        ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+        ret += (20.0 * Math.sin(y * Math.PI) + 40.0 * Math.sin(y / 3.0 * Math.PI)) * 2.0 / 3.0;
+        ret += (160.0 * Math.sin(y / 12.0 * Math.PI) + 320 * Math.sin(y * Math.PI / 30.0)) * 2.0 / 3.0;
+        return ret;
+    }
+
+    transformLng(x, y) {
+        let ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+        ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+        ret += (20.0 * Math.sin(x * Math.PI) + 40.0 * Math.sin(x / 3.0 * Math.PI)) * 2.0 / 3.0;
+        ret += (150.0 * Math.sin(x / 12.0 * Math.PI) + 300.0 * Math.sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
+        return ret;
     }
 
     calculateDistance(lat1, lon1, lat2, lon2) {
@@ -130,6 +212,7 @@ class LocationTracker {
         this.longitudeElem.textContent = '-';
         this.speedElem.textContent = '-';
         this.accelerationElem.textContent = '-';
+        this.distanceElem.textContent = '-';
     }
 }
 
@@ -142,3 +225,4 @@ document.addEventListener('DOMContentLoaded', () => {
     
     new LocationTracker();
 });
+
