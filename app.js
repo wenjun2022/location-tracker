@@ -100,27 +100,47 @@ class LocationTracker {
         }
 
         // 计算速度和加速度
-        let currentSpeed = speed;
+        let currentSpeed = speed || 0;
         let acceleration = 0;
         let distance = 0;
         
         if (this.lastPosition && this.lastTimestamp) {
             const timeDiff = (timestamp - this.lastTimestamp) / 1000;
-            distance = this.calculateDistance(
-                this.lastPosition.coords.latitude,
-                this.lastPosition.coords.longitude,
-                latitude,
-                longitude
-            );
-            this.totalDistance += distance;
-            
-            currentSpeed = distance / timeDiff;
-            acceleration = (currentSpeed - this.lastSpeed) / timeDiff;
+            // 忽略时间差过小的情况（小于0.1秒）
+            if (timeDiff > 0.1) {
+                distance = this.calculateDistance(
+                    this.lastPosition.coords.latitude,
+                    this.lastPosition.coords.longitude,
+                    latitude,
+                    longitude
+                );
+                
+                // 忽略异常距离（大于1000米）
+                if (distance < 1000) {
+                    this.totalDistance += distance;
+                    currentSpeed = distance / timeDiff;
+                    
+                    // 限制最大速度（100 m/s）
+                    if (currentSpeed > 100) {
+                        currentSpeed = this.lastSpeed || 0;
+                    }
+                    
+                    // 计算加速度
+                    if (this.lastSpeed !== null) {
+                        acceleration = (currentSpeed - this.lastSpeed) / timeDiff;
+                        
+                        // 限制最大加速度（10 m/s²）
+                        if (Math.abs(acceleration) > 10) {
+                            acceleration = 0;
+                        }
+                    }
+                }
+            }
         }
         
         // 更新显示
-        this.speedElem.textContent = currentSpeed ? currentSpeed.toFixed(2) : '0.00';
-        this.accelerationElem.textContent = acceleration ? acceleration.toFixed(2) : '0.00';
+        this.speedElem.textContent = Math.abs(currentSpeed).toFixed(2);
+        this.accelerationElem.textContent = Math.abs(acceleration).toFixed(2);
         this.distanceElem.textContent = (this.totalDistance / 1000).toFixed(2);
 
         // 检查是否达到运动目标
