@@ -12,6 +12,14 @@ class LocationTracker {
         this.targetDistance = 2000; // 2公里目标（单位：米）
         this.targetReached = false;
         this.startTimestamp = null;
+        
+        // 卡尔曼滤波器参数
+        this.kalmanFilter = {
+            Q: 0.1, // 过程噪声
+            R: 5,   // 测量噪声
+            P: 1,   // 估计误差协方差
+            x: null // 状态估计值
+        };
 
         this.speedElem = document.getElementById('speed');
         this.accelerationElem = document.getElementById('acceleration');
@@ -66,9 +74,34 @@ class LocationTracker {
         );
     }
 
+    kalmanFilterUpdate(measurement) {
+        if (!this.kalmanFilter.x) {
+            this.kalmanFilter.x = measurement;
+            return measurement;
+        }
+        
+        // 预测
+        const x_pred = this.kalmanFilter.x;
+        const P_pred = this.kalmanFilter.P + this.kalmanFilter.Q;
+        
+        // 更新
+        const K = P_pred / (P_pred + this.kalmanFilter.R);
+        const x_est = x_pred + K * (measurement - x_pred);
+        const P_est = (1 - K) * P_pred;
+        
+        this.kalmanFilter.x = x_est;
+        this.kalmanFilter.P = P_est;
+        
+        return x_est;
+    }
+
     updatePosition(position) {
-        const { latitude, longitude, speed } = position.coords;
+        const { latitude, longitude, speed, accuracy } = position.coords;
         const timestamp = position.timestamp;
+        
+        // 使用卡尔曼滤波器平滑位置
+        const filteredLat = this.kalmanFilterUpdate(latitude);
+        const filteredLng = this.kalmanFilterUpdate(longitude);
         
         // 将WGS84坐标转换为GCJ02坐标
         const gcj02 = this.wgs84ToGcj02(longitude, latitude);
@@ -174,7 +207,10 @@ class LocationTracker {
         navigator.geolocation.getCurrentPosition(
             position => {
                 const { latitude, longitude } = position.coords;
-                const gcj02 = this.wgs84ToGcj02(longitude, latitude);
+                // 使用卡尔曼滤波后的位置
+                const filteredLat = this.kalmanFilterUpdate(latitude);
+                const filteredLng = this.kalmanFilterUpdate(longitude);
+                const gcj02 = this.wgs84ToGcj02(filteredLng, filteredLat);
                 
                 // 如果标记不存在则创建
                 if (!this.marker) {
