@@ -75,9 +75,14 @@ class LocationTracker {
         let acceleration = 0;
         let distance = 0;
         
-        // 忽略前5个数据点，等待GPS稳定
+        // 更新位置计数
+        this.positionCount++;
+        
+        // 前5个数据点只更新位置，不计算速度
         if (this.positionCount < 5) {
-            this.positionCount++;
+            // 更新最后记录
+            this.lastPosition = position;
+            this.lastTimestamp = timestamp;
             return;
         }
         
